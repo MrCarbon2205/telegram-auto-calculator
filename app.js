@@ -1,3 +1,17 @@
+// ДОБАВЬТЕ ЭТО В НАЧАЛО ФАЙЛА:
+window.currentCountry = 'JP';
+window.exchangeRates = {};
+window.calculationHistory = [];
+window.costChart = null;
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    // Восстанавливаем историю из localStorage
+    try {
+        window.calculationHistory = JSON.parse(localStorage.getItem('autoCalcHistory')) || [];
+    } catch (e) {
+        window.calculationHistory = [];
+    } // это исправления истории
 // Конфигурация приложения
 const CONFIG = {
     EXCHANGE_API: 'https://api.exchangerate-api.com/v4/latest/',
