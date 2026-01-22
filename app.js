@@ -11,7 +11,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.calculationHistory = JSON.parse(localStorage.getItem('autoCalcHistory')) || [];
     } catch (e) {
         window.calculationHistory = [];
-    } // это исправления истории
+    } // это исправления истории 
 // Конфигурация приложения
 const CONFIG = {
     EXCHANGE_API: 'https://api.exchangerate-api.com/v4/latest/',
