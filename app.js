@@ -100,14 +100,8 @@ async function loadExchangeRates() {
         
         exchangeRates = {
             USD: { rub: data.Valute.USD.Value, updated: data.Date },
-            JPY: { 
-                rub: data.Valute.JPY.Value / data.Valute.JPY.Nominal, 
-                updated: data.Date 
-            },
-            CNY: { 
-                rub: data.Valute.CNY.Value / data.Valute.CNY.Nominal, 
-                updated: data.Date 
-            }
+            JPY: { rub: data.Valute.JPY.Value / data.Valute.JPY.Nominal, updated: data.Date},
+            CNY: { rub: data.Valute.CNY.Value / data.Valute.CNY.Nominal, updated: data.Date}
         };
     } catch (error) {
         // Fallback на статические данные
