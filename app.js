@@ -77,19 +77,34 @@ async function loadExchangeRates() {
     refreshBtn.classList.add('spin');
     
     try {
-        // ФИКСИРОВАННЫЕ КУРСЫ ДЛЯ ДЕМО (работает стабильно)
-        window.exchangeRates = { // Используем window.
-            JPY: { rub: 0.60, updated: new Date().toISOString() },
-            CNY: { rub: 11.50, updated: new Date().toISOString() },
-            KRW: { rub: 0.067, updated: new Date().toISOString() },
-            USD: { rub: 90.5, updated: new Date().toISOString() }
-        };
+        // Используйте ваш развернутый API
+        const response = await fetch('https://ВАШ_ДОМЕН/api/rates');
+        const data = await response.json();
+        
+        if (data.success) {
+            window.exchangeRates = {
+                JPY: { rub: data.data.JPY.rub },
+                CNY: { rub: data.data.CNY.rub },
+                KRW: { rub: data.data.KRW.rub },
+                USD: { rub: data.data.USD.rub }
+            };
+            showNotification('Курсы загружены с сервера!', 'success');
+        } else {
+            throw new Error('Ошибка сервера');
+        }
         
         updateExchangeDisplay();
-        showNotification('Курсы обновлены!', 'success');
     } catch (error) {
         console.error('Ошибка загрузки курсов:', error);
-        showNotification('Ошибка загрузки курсов', 'error');
+        // Fallback на фиксированные значения
+        window.exchangeRates = {
+            JPY: { rub: 0.60 },
+            CNY: { rub: 11.50 },
+            KRW: { rub: 0.067 },
+            USD: { rub: 90.5 }
+        };
+        showNotification('Используются локальные курсы', 'warning');
+        updateExchangeDisplay();
     } finally {
         refreshBtn.classList.remove('spin');
     }
