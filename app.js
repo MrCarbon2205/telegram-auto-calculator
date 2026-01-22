@@ -234,12 +234,12 @@ function formatCurrency(amount) {
 }
 
 function updateChart(results) {
-    const ctx = document.getElementById('cost-chart').getContext('2d');
+     const ctx = document.getElementById('cost-chart');
+    if (!ctx) return;
     
-    // Удаляем старый график если есть
-    if (window.costChart) {
-        window.costChart.destroy();
-    }
+    // Убедитесь что Canvas контекст доступен
+    const context = ctx.getContext('2d');
+    if (!context) return;
     
     const data = {
         labels: ['Авто', 'Таможня', 'Утильсбор', 'ЭПТС', 'Доставка'],
