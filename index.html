@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚗 Калькулятор авто с доставкой</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Шапка -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-car"></i>
+                <h1>AutoImport Calculator</h1>
+            </div>
+            <div class="currency-info">
+                <span id="current-date"></span>
+                <div class="exchange-rates" id="exchange-rates">
+                    <i class="fas fa-sync-alt spin" id="refresh-rates"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Основной калькулятор -->
+        <main class="calculator">
+            <!-- Выбор страны -->
+            <section class="country-selector">
+                <h2><i class="fas fa-globe-asia"></i> Выберите страну</h2>
+                <div class="countries">
+                    <div class="country-card active" data-country="JP">
+                        <i class="fas fa-torii-gate"></i>
+                        <span>Япония</span>
+                        <div class="flag jp"></div>
+                    </div>
+                    <div class="country-card" data-country="CN">
+                        <i class="fas fa-dragon"></i>
+                        <span>Китай</span>
+                        <div class="flag cn"></div>
+                    </div>
+                    <div class="country-card" data-country="KR">
+                        <i class="fas fa-landmark"></i>
+                        <span>Корея</span>
+                        <div class="flag kr"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Ввод стоимости -->
+            <section class="price-input">
+                <h2><i class="fas fa-money-bill-wave"></i> Стоимость автомобиля</h2>
+                <div class="input-group">
+                    <input type="number" id="car-price" placeholder="Введите стоимость" min="0" step="1000">
+                    <div class="currency-display">
+                        <span id="currency-symbol">¥</span>
+                        <span id="currency-name">JPY</span>
+                    </div>
+                </div>
+                <div class="price-slider">
+                    <input type="range" id="price-slider" min="0" max="10000000" step="100000" value="1000000">
+                    <div class="slider-labels">
+                        <span>0</span>
+                        <span>5M</span>
+                        <span>10M</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Дополнительные расходы -->
+            <section class="additional-costs">
+                <h2><i class="fas fa-list-alt"></i> Дополнительные расходы</h2>
+                
+                <div class="cost-item">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="customs-tax" checked disabled>
+                        <span class="checkmark"></span>
+                        <span class="cost-title">Таможенная пошлина</span>
+                    </label>
+                    <div class="cost-amount" id="customs-amount">48%</div>
+                </div>
+
+                <div class="cost-item">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="recycling-fee" checked>
+                        <span class="checkmark"></span>
+                        <span class="cost-title">Утильсбор</span>
+                    </label>
+                    <div class="cost-amount">20,000 ₽</div>
+                </div>
+
+                <div class="cost-item">
+                    <label class="checkbox-container">
+                        <input type="checkbox" id="epts-fee" checked>
+                        <span class="checkmark"></span>
+                        <span class="cost-title">ЭПТС (сертификация)</span>
+                    </label>
+                    <div class="cost-amount">3,000 ₽</div>
+                </div>
+
+                <!-- Доставка -->
+                <div class="shipping-section">
+                    <h3><i class="fas fa-shipping-fast"></i> Доставка</h3>
+                    
+                    <div class="shipping-option">
+                        <label>Порт назначения:</label>
+                        <select id="port-select">
+                            <option value="vladivostok">Владивосток (от $800)</option>
+                            <option value="novorossiysk">Новороссийск (от $1,500)</option>
+                            <option value="spb">Санкт-Петербург (от $1,800)</option>
+                        </select>
+                    </div>
+
+                    <div class="shipping-option">
+                        <label>Тип доставки:</label>
+                        <div class="radio-group">
+                            <label class="radio-container">
+                                <input type="radio" name="shipping-type" value="container" checked>
+                                <span class="radiomark"></span>
+                                Контейнер
+                            </label>
+                            <label class="radio-container">
+                                <input type="radio" name="shipping-type" value="ro-ro">
+                                <span class="radiomark"></span>
+                                Ролкер
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Кнопка расчета -->
+            <button class="calculate-btn" id="calculate-btn">
+                <i class="fas fa-calculator"></i> РАССЧИТАТЬ СТОИМОСТЬ
+            </button>
+
+            <!-- Результаты -->
+            <section class="results" id="results-section" style="display: none;">
+                <h2><i class="fas fa-receipt"></i> ИТОГОВЫЙ РАСЧЕТ</h2>
+                
+                <div class="total-breakdown">
+                    <div class="breakdown-item">
+                        <span>Стоимость авто:</span>
+                        <span id="car-price-rub">0 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Таможенная пошлина:</span>
+                        <span id="customs-price">0 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Утильсбор:</span>
+                        <span id="recycling-price">20,000 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>ЭПТС:</span>
+                        <span id="epts-price">3,000 ₽</span>
+                    </div>
+                    <div class="breakdown-item">
+                        <span>Доставка:</span>
+                        <span id="shipping-price">0 ₽</span>
+                    </div>
+                    
+                    <div class="total-summary">
+                        <div class="total-line"></div>
+                        <div class="total-item">
+                            <strong>ВСЕГО К ОПЛАТЕ:</strong>
+                            <strong id="total-price">0 ₽</strong>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- График -->
+                <div class="chart-container">
+                    <canvas id="cost-chart"></canvas>
+                </div>
+
+                <!-- Действия -->
+                <div class="action-buttons">
+                    <button class="action-btn" id="save-calculation">
+                        <i class="fas fa-save"></i> Сохранить
+                    </button>
+                    <button class="action-btn" id="share-btn">
+                        <i class="fas fa-share-alt"></i> Поделиться
+                    </button>
+                    <button class="action-btn" id="history-btn">
+                        <i class="fas fa-history"></i> История
+                    </button>
+                </div>
+            </section>
+
+            <!-- История расчетов -->
+            <section class="history-section" id="history-section" style="display: none;">
+                <h2><i class="fas fa-history"></i> История расчетов</h2>
+                <div id="history-list"></div>
+                <button class="back-btn" id="back-to-calc">
+                    <i class="fas fa-arrow-left"></i> Вернуться к расчету
+                </button>
+            </section>
+        </main>
+
+        <!-- Подвал -->
+        <footer class="footer">
+            <p>Курсы валют обновляются ежедневно</p>
+            <p class="disclaimer">
+                * Расчет является приблизительным. Финальная стоимость может отличаться.
+            </p>
+            <div class="footer-links">
+                <a href="#" id="help-btn"><i class="fas fa-question-circle"></i> Помощь</a>
+                <a href="#" id="contacts-btn"><i class="fas fa-address-book"></i> Контакты</a>
+                <a href="#" id="auctions-btn"><i class="fas fa-gavel"></i> Аукционы</a>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Модальные окна -->
+    <div class="modal" id="help-modal">
+        <div class="modal-content">
+            <h3><i class="fas fa-question-circle"></i> Справочная информация</h3>
+            <div class="modal-info">
+                <p><strong>Таможенные ставки:</strong></p>
+                <ul>
+                    <li>Япония: 48% для авто старше 3 лет</li>
+                    <li>Китай: 30-35% в зависимости от объема двигателя</li>
+                    <li>Корея: 40% для бензиновых авто</li>
+                </ul>
+                <p><strong>Полезные ссылки:</strong></p>
+                <ul>
+                    <li><a href="https://www.copart.com" target="_blank">Copart - аукцион США</a></li>
+                    <li><a href="https://www.iaai.com" target="_blank">IAAI - аукцион США</a></li>
+                    <li><a href="https://aucfan.com" target="_blank">AucFan - аукцион Японии</a></li>
+                </ul>
+            </div>
+            <button class="modal-close" id="close-help">Закрыть</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script src="telegram-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</body>
+</html>
