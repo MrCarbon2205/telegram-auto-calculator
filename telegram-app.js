@@ -3,7 +3,7 @@ const tg = window.Telegram?.WebApp;
 
 if (tg) {
     tg.ready();
-    tg.expand(); // Раскрываем на весь экран
+    tg.expand();
     
     // Используем тему Telegram
     if (tg.colorScheme === 'dark') {
@@ -27,100 +27,101 @@ if (tg) {
     // Отправка данных боту
     function sendCalculationToBot() {
         const calculation = {
-            country: currentCountry,
-            price: document.getElementById('car-price').value,
-            total: document.getElementById('total-price').textContent,
-            breakdown: {
-                carPrice: document.getElementById('car-price-rub').textContent,
-                customs: document.getElementById('customs-price').textContent,
-                shipping: document.getElementById('shipping-price').textContent
-            }
+            country: window.currentCountry || 'JP',
+            price: document.getElementById('car-price')?.value || '0',
+            total: document.getElementById('total-price')?.textContent || '0 ₽'
         };
         
-        tg.sendData(JSON.stringify(calculation));
+        if (tg.sendData) {
+            tg.sendData(JSON.stringify(calculation));
+        }
         tg.close();
     }
     
-    // Показываем/скрываем кнопку при расчете
+    // Перехватываем функцию расчета для показа кнопки
     const originalCalculate = window.calculateTotal;
-    window.calculateTotal = function() {
-        originalCalculate();
-        updateMainButton(true);
-    };
+    if (originalCalculate) {
+        window.calculateTotal = function() {
+            const result = originalCalculate.apply(this, arguments);
+            updateMainButton(true);
+            return result;
+        };
+    }
     
-    // Кнопка поделиться в Telegram
-    document.getElementById('share-btn').addEventListener('click', function() {
-        const price = document.getElementById('car-price').value;
-        const total = document.getElementById('total-price').textContent;
-        const country = document.querySelector('.country-card.active span').textContent;
-        
-        const shareText = `🚗 Рассчитал стоимость авто из ${country}:\n` +
-                         `Исходная цена: ${price} ${document.getElementById('currency-name').textContent}\n` +
-                         `Итого с доставкой: ${total}\n\n` +
-                         `Попробуй и ты: https://t.me/ishiyama_auto_calculator`;
-        
-        if (tg) {
-            tg.shareMessage(shareText);
-        } else {
-            // Для веб-версии
-            navigator.clipboard.writeText(shareText);
-            alert('Текст скопирован в буфер обмена!');
+    // Кнопка поделиться
+    document.addEventListener('click', function(e) {
+        if (e.target.id === 'share-btn' || e.target.closest('#share-btn')) {
+            const price = document.getElementById('car-price')?.value || '0';
+            const total = document.getElementById('total-price')?.textContent || '0 ₽';
+            const countryElement = document.querySelector('.country-card.active span');
+            const country = countryElement ? countryElement.textContent : 'Япония';
+            
+            const shareText = `🚗 Рассчитал стоимость авто из ${country}:\n` +
+                             `Исходная цена: ${price}\n` +
+                             `Итого с доставкой: ${total}\n\n` +
+                             `Попробуй и ты!`;
+            
+            if (tg.shareMessage) {
+                tg.shareMessage(shareText);
+            } else if (navigator.share) {
+                navigator.share({ text: shareText });
+            } else {
+                navigator.clipboard.writeText(shareText)
+                    .then(() => alert('Текст скопирован в буфер обмена!'));
+            }
         }
     });
     
     // Получаем данные пользователя
     const user = tg.initDataUnsafe?.user;
     if (user) {
-        console.log('Пользователь Telegram:', user);
-        // Можно персонализировать приложение
+        console.log('Telegram user:', user);
     }
-}
-
-// Если не в Telegram, работаем как обычное веб-приложение
-else {
+} else {
     console.log('Приложение запущено вне Telegram');
     
-    // Добавляем сообщение о возможностях
-    const container = document.querySelector('.container');
-    const telegramAlert = document.createElement('div');
-    telegramAlert.className = 'telegram-alert';
-    telegramAlert.innerHTML = `
-        <div class="alert-content">
-            <h3><i class="fab fa-telegram"></i> Запустите в Telegram</h3>
-            <p>Для полного функционала откройте это приложение через Telegram бота</p>
-            <button onclick="window.location.href='https://t.me/your_bot'">
-                <i class="fab fa-telegram"></i> Открыть в Telegram
-            </button>
-        </div>
-    `;
-    container.insertBefore(telegramAlert, container.firstChild);
-    
-    // Стили для алерта
-    const alertStyle = document.createElement('style');
-    alertStyle.textContent = `
-        .telegram-alert {
-            background: linear-gradient(135deg, #0088cc, #34b7f1);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            border-radius: 0 0 var(--radius) var(--radius);
+    // Добавляем сообщение если запущено в браузере
+    document.addEventListener('DOMContentLoaded', function() {
+        const container = document.querySelector('.container');
+        if (container) {
+            const telegramAlert = document.createElement('div');
+            telegramAlert.className = 'telegram-alert';
+            telegramAlert.innerHTML = `
+                <div class="alert-content">
+                    <h3><i class="fab fa-telegram"></i> Запустите в Telegram</h3>
+                    <p>Для полного функционала откройте это приложение через Telegram бота</p>
+                    <p><small>Сейчас работает демо-версия</small></p>
+                </div>
+            `;
+            
+            // Стили для алерта
+            const style = document.createElement('style');
+            style.textContent = `
+                .telegram-alert {
+                    background: linear-gradient(135deg, #0088cc, #34b7f1);
+                    color: white;
+                    padding: 15px;
+                    text-align: center;
+                    border-radius: 0 0 12px 12px;
+                    margin: -20px -20px 20px -20px;
+                }
+                .alert-content h3 {
+                    margin: 0 0 10px 0;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 10px;
+                }
+                .alert-content p {
+                    margin: 5px 0;
+                }
+                .alert-content small {
+                    opacity: 0.8;
+                }
+            `;
+            document.head.appendChild(style);
+            
+            container.insertBefore(telegramAlert, container.firstChild);
         }
-        
-        .alert-content button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            background: white;
-            color: #0088cc;
-            border: none;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .alert-content button:hover {
-            transform: scale(1.05);
-        }
-    `;
-    document.head.appendChild(alertStyle);
+    });
 }
