@@ -57,7 +57,7 @@ if (tg) {
         const shareText = `🚗 Рассчитал стоимость авто из ${country}:\n` +
                          `Исходная цена: ${price} ${document.getElementById('currency-name').textContent}\n` +
                          `Итого с доставкой: ${total}\n\n` +
-                         `Попробуй и ты: https://t.me/your_bot`;
+                         `Попробуй и ты: https://t.me/`ishiyama_auto_calculator;
         
         if (tg) {
             tg.shareMessage(shareText);
