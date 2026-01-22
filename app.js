@@ -1,17 +1,4 @@
-window.currentCountry = 'JP';
-window.exchangeRates = {};
-window.calculationHistory = [];
-window.costChart = null;
-
-// Инициализация при загрузке
-document.addEventListener('DOMContentLoaded', function() {
-    // Восстанавливаем историю из localStorage
-    try {
-        window.calculationHistory = JSON.parse(localStorage.getItem('autoCalcHistory')) || [];
-    } catch (e) {
-        window.calculationHistory = [];
-    }
-    // Конфигурация приложения
+// Конфигурация приложения
 const CONFIG = {
     EXCHANGE_API: 'https://api.exchangerate-api.com/v4/latest/',
     CBR_API: 'https://www.cbr-xml-daily.ru/daily_json.js',
@@ -105,20 +92,20 @@ async function loadExchangeRates() {
     try {
         // Используем фиксированные курсы для демо
         // В реальном приложении замените на API запрос
-       async function loadRealExchangeRates() {
-    try {
-        // API ЦБ РФ
-        const response = await fetch('https://www.cbr-xml-daily.ru/daily_json.js');
-        const data = await response.json();
-        
         exchangeRates = {
-            USD: { rub: data.Valute.USD.Value, updated: data.Date },
-            JPY: { rub: data.Valute.JPY.Value / data.Valute.JPY.Nominal, updated: data.Date},
-            CNY: { rub: data.Valute.CNY.Value / data.Valute.CNY.Nominal, updated: data.Date}
+            JPY: { rub: 0.60, updated: new Date().toISOString() },
+            CNY: { rub: 11.50, updated: new Date().toISOString() },
+            KRW: { rub: 0.067, updated: new Date().toISOString() },
+            USD: { rub: 90.5, updated: new Date().toISOString() }
         };
+        
+        updateExchangeDisplay();
+        showNotification('Курсы обновлены!', 'success');
     } catch (error) {
-        // Fallback на статические данные
-        console.log('Использую статические курсы');
+        console.error('Ошибка загрузки курсов:', error);
+        showNotification('Ошибка загрузки курсов', 'error');
+    } finally {
+        refreshBtn.classList.remove('spin');
     }
 }
 
@@ -233,16 +220,11 @@ function formatCurrency(amount) {
 }
 
 function updateChart(results) {
-    const ctx = document.getElementById('cost-chart');
-    if (!ctx) return;
-    // Убедитесь что Canvas контекст доступен
-    const context = ctx.getContext('2d');
-    if (!context) return;
+    const ctx = document.getElementById('cost-chart').getContext('2d');
     
-    //const ctx = document.getElementById('cost-chart').getContext('2d');
-       // Удаляем старый график если есть
-    //if (window.costChart) {
-    //    window.costChart.destroy();
+    // Удаляем старый график если есть
+    if (window.costChart) {
+        window.costChart.destroy();
     }
     
     const data = {
