@@ -1,4 +1,17 @@
-// Конфигурация приложения
+window.currentCountry = 'JP';
+window.exchangeRates = {};
+window.calculationHistory = [];
+window.costChart = null;
+
+// Инициализация при загрузке
+document.addEventListener('DOMContentLoaded', function() {
+    // Восстанавливаем историю из localStorage
+    try {
+        window.calculationHistory = JSON.parse(localStorage.getItem('autoCalcHistory')) || [];
+    } catch (e) {
+        window.calculationHistory = [];
+    }
+    // Конфигурация приложения
 const CONFIG = {
     EXCHANGE_API: 'https://api.exchangerate-api.com/v4/latest/',
     CBR_API: 'https://www.cbr-xml-daily.ru/daily_json.js',
@@ -220,11 +233,16 @@ function formatCurrency(amount) {
 }
 
 function updateChart(results) {
-    const ctx = document.getElementById('cost-chart').getContext('2d');
+    const ctx = document.getElementById('cost-chart');
+    if (!ctx) return;
+    // Убедитесь что Canvas контекст доступен
+    const context = ctx.getContext('2d');
+    if (!context) return;
     
-    // Удаляем старый график если есть
-    if (window.costChart) {
-        window.costChart.destroy();
+    //const ctx = document.getElementById('cost-chart').getContext('2d');
+       // Удаляем старый график если есть
+    //if (window.costChart) {
+    //    window.costChart.destroy();
     }
     
     const data = {
