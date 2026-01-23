@@ -103,7 +103,38 @@ async function loadExchangeRates() {
     if (refreshBtn) refreshBtn.classList.add('spin');
     
     try {
-        // ВАРИАНТ 1: Фиксированные курсы (работает всегда)
+        // ВАШ НОВЫЙ КОД - используем Railway API
+        const RAILWAY_API_URL = 'https://ваш-проект.up.railway.app/api/rates';
+        
+        const response = await fetch(RAILWAY_API_URL, {
+            // Добавляем таймаут 5 секунд чтобы избежать зависания
+            signal: AbortSignal.timeout(5000)
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Ошибка сервера: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            exchangeRates = {
+                JPY: { rub: data.data.JPY.rub, updated: new Date().toISOString() },
+                CNY: { rub: data.data.CNY.rub, updated: new Date().toISOString() },
+                KRW: { rub: data.data.KRW.rub, updated: new Date().toISOString() },
+                USD: { rub: data.data.USD.rub, updated: new Date().toISOString() }
+            };
+            showNotification('Курсы загружены с сервера!', 'success');
+        } else {
+            throw new Error('Сервер вернул ошибку');
+        }
+        
+        updateExchangeDisplay();
+        
+    } catch (error) {
+        console.warn('Ошибка загрузки курсов с Railway:', error);
+        
+        // Fallback на фиксированные курсы
         exchangeRates = {
             JPY: { rub: 0.60, updated: new Date().toISOString() },
             CNY: { rub: 11.50, updated: new Date().toISOString() },
@@ -111,32 +142,8 @@ async function loadExchangeRates() {
             USD: { rub: 90.5, updated: new Date().toISOString() }
         };
         
-        // ВАРИАНТ 2: Если развернете server.py, раскомментируйте этот код:
-        /*
-        const response = await fetch('https://ВАШ_ДОМЕН/api/rates', {
-            signal: AbortSignal.timeout(5000) // Таймаут 5 секунд
-        });
-        
-        if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            exchangeRates = {
-                JPY: { rub: data.data.JPY?.rub || 0.60 },
-                CNY: { rub: data.data.CNY?.rub || 11.50 },
-                KRW: { rub: data.data.KRW?.rub || 0.067 },
-                USD: { rub: data.data.USD?.rub || 90.5 }
-            };
-        } else {
-            throw new Error('Ошибка сервера');
-        }
-        */
-        
+        showNotification(`Используем локальные курсы (${error.message})`, 'info');
         updateExchangeDisplay();
-        showNotification('Курсы загружены успешно!', 'success');
-    } catch (error) {
-        console.error('Ошибка загрузки курсов:', error);
-        showNotification('Используются демо-курсы', 'info');
     } finally {
         if (refreshBtn) refreshBtn.classList.remove('spin');
     }
