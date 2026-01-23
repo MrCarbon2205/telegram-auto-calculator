@@ -104,7 +104,7 @@ async function loadExchangeRates() {
     
     try {
         // ВАШ НОВЫЙ КОД - используем Railway API
-        const RAILWAY_API_URL = 'https://web-production-54e08.up.railway.app//api/rates';
+        const RAILWAY_API_URL = 'https://web-production-54e08.up.railway.app/api/rates';
         
         const response = await fetch(RAILWAY_API_URL, {
             // Добавляем таймаут 5 секунд чтобы избежать зависания
